@@ -1,0 +1,305 @@
+$(document).ready(function(){
+	$('.content span').each( function() {
+		if ($(this).parent('a').is('a') == false) {
+			$(this).css({'text-decoration':'none'});
+		}
+	});
+	$('#page-inner span').each( function() {
+		if ($(this).parent('a').is('a') == false) {
+			$(this).css({'text-decoration':'none'});
+		}
+	});
+	$('.page-content span').each( function() {
+		if ($(this).parent('a').is('a') == false) {
+			$(this).css({'text-decoration':'none'});
+		}
+	});
+	
+	$('a').each( function() {
+		var $newok = $(this).attr('href').substr(-3);
+		if ($newok == 'pdf') {
+			$(this).attr('target','_blank');
+		}
+	});
+	
+    if($.fn.cycle) {
+        $('#slideshow .slides').cycle({
+            'timeout' : 8000,
+            'next' : '#slideshow a.next',
+            'prev' : '#slideshow a.prev',
+            'pager':  '#slideshow .slideshow-inner .nav', 
+            'fx' : 'scrollHorz',
+            // callback fn that creates a thumbnail to use as pager anchor 
+            'pagerAnchorBuilder': function(idx) { 
+                return '<li><a href="#">' + (idx + 1) + '</a></li>'; 
+            } 
+        })
+        
+        $('.hit .slides').cycle({
+            'timeout' : 5000,
+            'next' : '.hit a.next',
+            'prev' : '.hit a.prev',
+            'fx' : 'scrollHorz'
+        });
+        
+        $('.video .slides').cycle({
+            'timeout' : 0,
+            'next' : '.video a.next',
+            'prev' : '.video a.prev',
+            'fx' : 'scrollHorz',
+            'speed' : 500
+        })
+    }
+    
+    var current_url = document.location.href;
+    console.log(current_url);
+
+    if(current_url == "http://zgt.ru/parts/prices"){
+			/*скрываем меню на странице цен*/
+			$('.block-nav').hide(); 			
+		}
+			
+    $('.tab-content').css('overflow','visible'); /*видосы не в столбец*/
+
+		
+		/*
+    var partners_position = 7;
+    $('#partners .prev').click(function(){
+        if(partners_position <= $('#partners-carousel li').length && partners_position > 7) {
+            $('#partners-carousel').animate({left : '+=118'});
+            partners_position--;
+        }
+        return false;
+    });
+    
+    $('#partners .next').click(function(){
+        if(partners_position >= 7 && partners_position < $('#partners-carousel li').length) {
+            $('#partners-carousel').animate({left : '-=118'});
+            partners_position++;
+        }
+        return false;
+    });
+    */
+
+		$('.partners-carousel').slick({
+			slidesToScroll:3,
+			slidesToShow: 6,
+			prevArrow:'.js-partners-carousel__prev',
+			nextArrow:'.js-partners-carousel__next'
+		});
+		
+    // ссылка "распечатать"
+    $('a.print').click(function(){
+        window.print()
+        return false;
+    });
+    
+     // fancybox
+    if($.fn.fancybox) {
+        $('.page_thumbnails a').fancybox();
+        
+        $('.parts_image').fancybox();
+    }
+    
+    if($.fn.placeholder) {
+        $('input, textarea').placeholder();
+    }
+		
+		
+		
+		
+		// Всплывающие формы
+
+			
+			
+	function PoupUp(){
+		this.wrapAjaxClass = '.js-ajax-wrap';
+		this.url = '/';
+		return this;	
+	}
+	
+	PoupUp.prototype.showLoading = function(){
+		$.fancybox.showLoading();
+		return this;
+	};
+	
+	PoupUp.prototype.hideLoading = function(){
+		$.fancybox.hideLoading();
+		return this;
+	};
+	
+	PoupUp.prototype.Open = function(data){	
+		self = this;
+		self.hideLoading();
+		
+		self.url = data.url;
+		
+		self.showLoading();
+	
+		$.ajax( data )
+		.done(function(html) {
+			var $formHtml = $('<div>'+html+'<div>').find(self.wrapAjaxClass);
+			if ($formHtml.length > 0) {
+				$.fancybox.open($formHtml, {
+					tpl:{
+						wrap:'<div class="poup-up fancybox-wrap" tabIndex="-1"><div class="fancybox-skin"><div class="fancybox-outer"><div class="fancybox-inner js-ajax-inner"></div></div></div></div>'
+					}
+				});
+				self.hideLoading();
+				self.Bind($formHtml);
+				$('.phone input[type="text"]').unmask().mask('+7 (999) 999-99-99');
+			}else{
+				alert('Ошибка загрузки формы')
+			}
+
+			
+		})
+		.fail(function() {
+			console.log( "error" );
+		})
+		.always(function() {
+			console.log( "complete" );
+			$('#ipagree').on('click', function() {
+				if ($(this).is(':checked')) {
+					$('#pagree').removeAttr('disabled');
+					$('#pagree').toggleClass('asdad');			
+				} else {
+					$('#pagree').attr('disabled', 'disabled');
+					$('#pagree').toggleClass('asdad');	
+				}
+			});
+			$('#icagree').on('click', function() {
+				if ($(this).is(':checked')) {
+					$('#cagree').removeAttr('disabled');
+				} else {
+					$('#cagree').attr('disabled', 'disabled');
+				}
+			});
+			$('#iagree').on('click', function() {
+				if ($(this).is(':checked')) {
+					$('#sagree').removeAttr('disabled');
+				} else {
+					$('#sagree').attr('disabled', 'disabled');
+				}
+			});				
+		});
+		
+
+		return this;	
+	};
+	
+	PoupUp.prototype.Close = function(){
+		$.fancybox.close();
+		this.hideLoading();
+		return this;
+	};
+	
+	PoupUp.prototype.Bind = function($formHtml){
+		self = this;
+		$formHtml.find('form').on('submit', function(event){			
+			event.preventDefault();
+			self.SendForm($(this));			
+		});
+	};
+	PoupUp.prototype.SendForm = function($form){
+		self = this;
+		self.showLoading();
+		
+		var data = {
+			url:self.url,
+			data:$form.serialize(),
+			type:$form.attr('method')
+		}
+
+		$.ajax( data )
+		.done(function(html) {
+			self.hideLoading();
+			var $formHtml = $('<div>'+html+'<div>').find(self.wrapAjaxClass);
+			$('.js-ajax-inner').html($formHtml);
+			self.Bind($('.js-ajax-inner'));
+			
+		})
+		.fail(function() {
+			console.log( "error" );
+		})
+		.always(function() {
+			console.log( "complete" );
+		});
+		
+	};
+	
+
+	
+	
+	FormPoupUp = new PoupUp();
+
+	$('.js-popup-form').on('click', function(event){
+		$this = $(this);
+		if( $this.is('a') && $this.attr('href') ){
+			var page = {
+				url:$this.attr('href'),
+			}
+			event.preventDefault();
+			FormPoupUp.Open(page);
+		}	
+	});
+	
+
+		
+	$('#ipagree').on('click', function() {
+		if ($(this).is(':checked')) {
+			$('#pagree').removeAttr('disabled');
+			$('.form_submit').toggleClass('asdad');			
+		} else {
+			$('#pagree').attr('disabled', 'disabled');
+			$('.form_submit').toggleClass('asdad');	
+		}
+	});
+	$('#icagree').on('click', function() {
+		if ($(this).is(':checked')) {
+			$('#cagree').removeAttr('disabled');
+		} else {
+			$('#cagree').attr('disabled', 'disabled');
+		}
+	});
+	$('#iagree').on('click', function() {
+		if ($(this).is(':checked')) {
+			$('#sagree').removeAttr('disabled');
+		} else {
+			$('#sagree').attr('disabled', 'disabled');
+		}
+	});
+
+	//if (document.location.href.indexOf('news?page=') > -1) {
+  //$('head').append('111');
+//  console.log('нет');
+//} else {
+  //$('head').append('<link rel="canonical" href="https://ooostm.ru/news"/>');
+ // console.log('да');
+//};
+
+	//if (window.location.href.indexOf('news?page=') > -1) { 
+	//	$('head').append('<link rel="canonical" href="https://ooostm.ru/news"/>');
+	//} 
+
+
+	/**var answ=$(".faq_answ");
+	$(".faq_answ").each(function (index, value) {
+		$(value).parent().attr("data-height",$(value).height());
+		$(value).css({"max-height" : "0px", "transition": "all .5s"});
+	});
+	$(".faq_quest").click((e)=>{
+        var quest = $(e.currentTarget);
+        var item = quest.parent();
+        var answ = item.find(".faq_answ");
+        if (item.attr("data-open")==0) {
+            answ.css({"max-height" : answ.parent().attr("data-height")+"px"});
+            quest.toggleClass("open")
+            item.attr("data-open",1);
+        } else {
+			answ.css({"max-height" : "0"})
+            quest.toggleClass("open")
+            item.attr("data-open",0);
+        }
+	}) **/
+});
